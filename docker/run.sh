@@ -1,5 +1,5 @@
 echo "#####################################################"
-echo "Please run 'python setup.py develop' in the container"
+echo "Please run 'python setup.py develop && cd /workspace/library/pymatch && python setup.py develop' in the container"
 echo "#####################################################"
 
 docker run -it \

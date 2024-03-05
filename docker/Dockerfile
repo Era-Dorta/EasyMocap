@@ -17,6 +17,8 @@ RUN apt update && \
 
 RUN python -m pip install -r requirements.txt && \
     pip install spconv-cu116 pyrender && \
+    cd /workspace/library/pymatch && \
+    python3 setup.py develop && \
     pip cache purge
 
 # Fix missing dri and wrong GCC versions with OpenGL

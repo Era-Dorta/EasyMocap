@@ -16,6 +16,6 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN python -m pip install -r requirements.txt && \
-    pip install spconv-cu116 && \
+    pip install spconv-cu116 pyrender && \
     pip cache purge
 

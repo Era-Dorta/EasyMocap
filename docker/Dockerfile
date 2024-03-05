@@ -20,8 +20,8 @@ RUN python -m pip install -r requirements.txt && \
     pip cache purge
 
 # Fix missing dri and wrong GCC versions with OpenGL
-RUN ln -sn /usr/lib/x86_64-linux-gnu/dri /usr/lib/dri && \
-	export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
+RUN ln -sn /usr/lib/x86_64-linux-gnu/dri /usr/lib/dri
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
 
 # Default ffmpeg from conda doesn't have x264 support, replace with apt version of ffmpeg
 RUN apt update && \

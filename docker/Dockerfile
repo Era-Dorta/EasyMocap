@@ -22,3 +22,20 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/* && \
     rm /opt/conda/bin/ffmpeg && \
     ln -s /usr/bin/ffmpeg /opt/conda/bin/ffmpeg
+
+# Install OpenPose dependencies
+RUN apt update && \
+apt install -y libopencv-dev protobuf-compiler libgoogle-glog-dev libboost-all-dev libhdf5-dev libatlas-base-dev && \
+rm -rf /var/lib/apt/lists/*
+
+# Install OpenPose dependencies
+RUN git clone https://github.com/CMU-Perceptual-Computing-Lab/openpose.git --depth 1 && \
+    cd openpose  && \
+    git submodule update --init --recursive --remote && \
+    mkdir build    
+
+RUN cd openpose/build && \
+    cmake .. -DBUILD_PYTHON=true \
+    -DDOWNLOAD_HAND_MODEL=OFF -DDOWNLOAD_FACE_MODEL=OFF -DDOWNLOAD_BODY_25_MODEL=OFF \
+    -DCUDA_ARCH=Manual -DCUDA_ARCH_BIN="60 61 62 70 72 75 80 86 87 89 90" -DCUDA_ARCH_PTX="61" && \
+    make -j`nproc`

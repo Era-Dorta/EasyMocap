@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:2.2.0-cuda12.1-cudnn8-devel as base
+FROM pytorch/pytorch:2.2.0-cuda12.1-cudnn8-devel AS base
 
 COPY requirements.txt .
 
@@ -44,7 +44,7 @@ RUN cd openpose/build && \
     -DCUDA_ARCH=Manual -DCUDA_ARCH_BIN="61 62 70 72 75 80 86 87 89 90" -DCUDA_ARCH_PTX="61" && \
     make -j`nproc`
 
-FROM base as runtime
+FROM base AS runtime
 
 RUN git clone https://github.com/Era-Dorta/EasyMocap.git --depth 1
 
@@ -54,3 +54,10 @@ RUN cd EasyMocap && \
     python setup.py develop
 
 USER user
+
+ARG OPEN_POSE_MODELS
+ADD --chown=user ${OPEN_POSE_MODELS} ./openpose/models
+
+ARG EASY_MOCAP_MODELS
+ADD --chown=user ${EASY_MOCAP_MODELS} ./EasyMocap/data
+

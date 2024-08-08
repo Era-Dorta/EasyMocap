@@ -40,7 +40,6 @@ RUN cd openpose/build && \
     cmake .. \
     -DBUILD_PYTHON=true \
     -DDOWNLOAD_HAND_MODEL=OFF -DDOWNLOAD_FACE_MODEL=OFF -DDOWNLOAD_BODY_25_MODEL=OFF \
-    -DBUILD_EXAMPLES=false \
     -DCUDA_ARCH=Manual -DCUDA_ARCH_BIN="61 62 70 72 75 80 86 87 89 90" -DCUDA_ARCH_PTX="61" && \
     make -j`nproc`
 

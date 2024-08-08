@@ -1,6 +1,6 @@
 #!/bin/bash
 REPO_DIR=$(dirname $(dirname $(realpath $0)))
-set -x
+
 cd $REPO_DIR
 
 if [ $# -ne 1 ]; then

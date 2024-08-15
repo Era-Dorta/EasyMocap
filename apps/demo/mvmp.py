@@ -14,6 +14,8 @@ from easymocap.assignment.group import PeopleGroup
 from easymocap.mytools import Timer
 from tqdm import tqdm
 
+import requests
+
 def mvposev1(dataset, args, cfg):
     dataset.no_img = not (args.vis_det or args.vis_match or args.vis_repro or args.ret_crop)
     start, end = args.start, min(args.end, len(dataset))
@@ -44,6 +46,9 @@ def mvposev1(dataset, args, cfg):
         if args.vis3d:
             vis3d.send(group.results)
     Timer.report()
+
+    # Tell the openpose docker container to shut down 
+    requests.get('http://127.0.0.1:5001/shutdown')
 
 if __name__ == "__main__":
     from easymocap.mytools import load_parser, parse_parser

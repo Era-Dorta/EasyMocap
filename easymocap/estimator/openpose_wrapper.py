@@ -16,13 +16,13 @@ import numpy as np
 import cv2
 from glob import glob
 from multiprocessing import Process
+import requests
 
 def run_openpose(image_root, annot_root, config):
     image_root = os.path.realpath(image_root)
     annot_root = os.path.realpath(annot_root)
 
     os.makedirs(annot_root, exist_ok=True)
-    pwd = os.getcwd()
     if os.name != 'nt':
         cmd = './build/examples/openpose/openpose.bin --image_dir {} --write_json {} --display 0'.format(
             image_root, annot_root)
@@ -39,10 +39,11 @@ def run_openpose(image_root, annot_root, config):
         cmd = cmd + ' --write_images {}'.format(annot_root)
     else:
         cmd = cmd + ' --render_pose 0'
-    os.chdir(config['root'])
+
     print(cmd)
-    os.system(cmd)
-    os.chdir(pwd)
+    response = requests.get('http://127.0.0.1:5001/run_command', json={"cmd": cmd})
+    if response.status_code != 200:
+        raise RuntimeError('Error: {}'.format(response.text))
 
 def convert_from_openpose(src, dst, image_root, ext):
     # convert the 2d pose from openpose

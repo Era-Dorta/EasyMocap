@@ -11,6 +11,7 @@ from os.path import join
 from tqdm import tqdm
 from glob import glob
 import numpy as np
+import requests
 
 mkdir = lambda x: os.makedirs(x, exist_ok=True)
 
@@ -61,8 +62,11 @@ def extract_2d(openpose, image, keypoints, render, args):
                 cmd = cmd + ' --write_images {}'.format(join(os.getcwd(),render))
         else:
             cmd = cmd + ' --render_pose 0'
-        os.chdir(openpose)
-        os.system(cmd)
+        print(cmd)
+
+        response = requests.get('http://127.0.0.1:5001/run_command', json={"cmd": cmd})
+        if response.status_code != 200:
+            raise RuntimeError('Error: {}'.format(response.text))
 
 
 import json

@@ -1,47 +1,28 @@
-FROM pytorch/pytorch:2.2.0-cuda12.1-cudnn8-devel AS base
-
-COPY requirements.txt .
+# https://chingswy.github.io/easymocap-public-doc/install/install.html#20230630-update
+# They recommend python 3.9 + cuda 11.6 + torch 1.12.0
+# We are getting the closest pytorch version that is avaiable in docker hub for cuda 11.6
+# ->             python 3.10 + cuda 11.6 + torch 1.13.1
+FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# System dependencies, first line are for easy mocap, second line for openpose
-RUN apt update && \
-    apt install -y git libgl1 libglib2.0-0 libsm6 libxrender1 libxext6 unzip wget && \
-    apt install -y libopencv-dev protobuf-compiler libgoogle-glog-dev libboost-all-dev libhdf5-dev libatlas-base-dev cmake && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN python -m pip install -r requirements.txt && \
-    pip install spconv-cu116 pyrender && \
-    pip cache purge
-
-# Fix missing dri and wrong GCC versions with OpenGL
-RUN ln -sn /usr/lib/x86_64-linux-gnu/dri /usr/lib/dri
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
-
 # Default ffmpeg from conda doesn't have x264 support, replace with apt version of ffmpeg
 RUN apt update && \
-    apt install -y ffmpeg && \
-    rm -rf /var/lib/apt/lists/* && \
+    apt install -y --no-install-recommends git ffmpeg && \
     rm /opt/conda/bin/ffmpeg && \
-    ln -s /usr/bin/ffmpeg /opt/conda/bin/ffmpeg
+    ln -s /usr/bin/ffmpeg /opt/conda/bin/ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+RUN pip3 install -r requirements.txt && \
+    pip3 install spconv-cu116 pyrender && \
+    pip3 cache purge
 
 RUN useradd --create-home --shell /bin/bash --uid 1001 user
 USER user
 RUN mkdir -p /home/user/easymocap
 WORKDIR /home/user/easymocap
-
-RUN git clone https://github.com/CMU-Perceptual-Computing-Lab/openpose.git --depth 1 && \
-    cd openpose  && \
-    git submodule update --init --recursive --remote && \
-    mkdir build    
-
-# Build openpose with python support, wide GPU architure support and without downloading models as many fail to download
-RUN cd openpose/build && \
-    cmake .. \
-    -DBUILD_PYTHON=true \
-    -DDOWNLOAD_HAND_MODEL=OFF -DDOWNLOAD_FACE_MODEL=OFF -DDOWNLOAD_BODY_25_MODEL=OFF \
-    -DCUDA_ARCH=Manual -DCUDA_ARCH_BIN="61 62 70 72 75 80 86 87 89 90" -DCUDA_ARCH_PTX="61" && \
-    make -j`nproc`
 
 FROM base AS runtime
 
@@ -49,14 +30,14 @@ RUN git clone https://github.com/Era-Dorta/EasyMocap.git --depth 1
 
 USER root
 RUN cd EasyMocap && \
-    python -m pip install -r requirements.txt   && \
-    python setup.py develop
-
+    python3 -m pip install -r requirements.txt   && \
+    python3 setup.py develop
 USER user
-
-ARG OPEN_POSE_MODELS
-ADD --chown=user ${OPEN_POSE_MODELS} ./openpose/models
 
 ARG EASY_MOCAP_MODELS
 ADD --chown=user ${EASY_MOCAP_MODELS} ./EasyMocap/data
+
+WORKDIR /home/user/easymocap/EasyMocap
+
+CMD ["container_scripts/entrypoint.sh"]
 

@@ -118,3 +118,6 @@ models
 yolov5m.pt
 
 tmp_models
+
+# Apptainer images
+*.sif

@@ -2,6 +2,7 @@
 # They recommend python 3.9 + cuda 11.6 + torch 1.12.0
 # We are getting the closest pytorch version that is avaiable in docker hub for cuda 11.6
 # ->             python 3.10 + cuda 11.6 + torch 1.13.1
+ARG EASY_MOCAP_BASE_IMAGE_VERSION=0.2.1
 FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -24,7 +25,10 @@ USER user
 RUN mkdir -p /home/user/easymocap
 WORKDIR /home/user/easymocap
 
-FROM base AS runtime
+ARG EASY_MOCAP_MODELS
+ADD --chown=user ${EASY_MOCAP_MODELS} ./EasyMocap_models
+
+FROM eradorta/easymocap:$EASY_MOCAP_BASE_IMAGE_VERSION-base AS runtime
 
 RUN git clone https://github.com/Era-Dorta/EasyMocap.git --depth 1
 
@@ -34,8 +38,10 @@ RUN cd EasyMocap && \
     python3 setup.py develop
 USER user
 
-ARG EASY_MOCAP_MODELS
-ADD --chown=user ${EASY_MOCAP_MODELS} ./EasyMocap/data
+# For the git clone the EasyMocap folder had to be empty.
+# Now that it happened, make hard links of the models to their final location
+RUN rm -rf ./EasyMocap/data/smplx && \
+    cp --link --recursive ./EasyMocap_models/* ./EasyMocap/data
 
 WORKDIR /home/user/easymocap/EasyMocap
 

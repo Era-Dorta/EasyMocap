@@ -35,10 +35,20 @@ fi
 
 VERSION=$(grep -oP "(?<=    version=')[^']*" setup.py)
 
+# First build the base image with caching, this has all the dependencies but not the EasyMocap repo
 docker build \
     --progress=plain \
-    --target runtime \
+    --target base \
     --build-arg EASY_MOCAP_MODELS=$EASY_MOCAP_MODELS_LOCAL \
+    --tag eradorta/easymocap:$VERSION-base \
+    ${REPO_DIR}
+
+# Then build the runtime image with the EasyMocap repo, as this is doing a git clone, do not use the cache
+docker build \
+    --no-cache \
+    --progress=plain \
+    --target runtime \
+    --build-arg EASY_MOCAP_BASE_IMAGE_VERSION=$VERSION \
     --tag eradorta/easymocap:$VERSION \
     ${REPO_DIR}
 

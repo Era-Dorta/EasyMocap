@@ -39,7 +39,6 @@ VERSION=$(grep -oP "(?<=    version=')[^']*" setup.py)
 docker build \
     --progress=plain \
     --target base \
-    --build-arg EASY_MOCAP_MODELS=$EASY_MOCAP_MODELS_LOCAL \
     --tag eradorta/easymocap:$VERSION-base \
     ${REPO_DIR}
 
@@ -48,6 +47,7 @@ docker build \
     --no-cache \
     --progress=plain \
     --target runtime \
+    --build-arg EASY_MOCAP_MODELS=$EASY_MOCAP_MODELS_LOCAL \
     --build-arg EASY_MOCAP_BASE_IMAGE_VERSION=$VERSION \
     --tag eradorta/easymocap:$VERSION \
     ${REPO_DIR}

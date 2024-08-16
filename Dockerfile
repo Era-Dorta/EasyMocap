@@ -25,9 +25,6 @@ USER user
 RUN mkdir -p /home/user/easymocap
 WORKDIR /home/user/easymocap
 
-ARG EASY_MOCAP_MODELS
-ADD --chown=user ${EASY_MOCAP_MODELS} ./EasyMocap_models
-
 FROM eradorta/easymocap:$EASY_MOCAP_BASE_IMAGE_VERSION-base AS runtime
 
 RUN git clone https://github.com/Era-Dorta/EasyMocap.git --depth 1
@@ -38,12 +35,13 @@ RUN cd EasyMocap && \
     python3 setup.py develop
 USER user
 
-# For the git clone the EasyMocap folder had to be empty.
-# Now that it happened, make hard links of the models to their final location
-RUN rm -rf ./EasyMocap/data/smplx && \
-    cp --link --recursive ./EasyMocap_models/* ./EasyMocap/data
-
 WORKDIR /home/user/easymocap/EasyMocap
+
+# For the git clone the EasyMocap folder had to be empty. Now that it happened, copy the data in there.
+# Also tried puting the models in the previous stage and making hard links but docker just duplicated 
+# the size of the image.
+ARG EASY_MOCAP_MODELS
+ADD --chown=user ${EASY_MOCAP_MODELS} ./data
 
 CMD ["/home/user/easymocap/EasyMocap/container_scripts/entrypoint.sh"]
 

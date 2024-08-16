@@ -45,5 +45,5 @@ RUN rm -rf ./EasyMocap/data/smplx && \
 
 WORKDIR /home/user/easymocap/EasyMocap
 
-CMD ["container_scripts/entrypoint.sh"]
+CMD ["/home/user/easymocap/EasyMocap/container_scripts/entrypoint.sh"]
 

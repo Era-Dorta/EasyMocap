@@ -7,6 +7,9 @@
 #SBATCH --gres=gpu
 #SBATCH --time=10:00
 #SBATCH --qos=short
+#SBATCH --exclude=gpu[01-12],gpu[14-29]
+
+# Open pose doesn't work on the A40 GPUs, so exclude them
 
 export RECORDING_NUMBER=154
 export EASYMOCAP_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/easymocap-0.2.1.sif"

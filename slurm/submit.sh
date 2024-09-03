@@ -19,20 +19,6 @@ export DATA_DIRECTORY="/tudelft.net/staff-umbrella/CaptureLab/Recordings"
 # The data directory inside the container
 export CONTAINER_DATA_DIRECTORY=/home/user/easymocap/EasyMocap/data/examples/_data
 
-# Run the containers with the following flags
-# --nv to get access to the nvidia GPUs in the host system
-# --containall to not mount any directory from the host system by default
-# --bind mount the data directorie in the container
-srun apptainer run \
-    --nv \
-    --containall \
-    --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_png:"${CONTAINER_DATA_DIRECTORY}" \
-    $OPENPOSE_IMAGE &
 
-srun apptainer run \
-    --nv \
-    --containall \
-    --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_png:"${CONTAINER_DATA_DIRECTORY}" \
-    $EASYMOCAP_IMAGE  &
+srun ./run_containers.sh
 
-wait

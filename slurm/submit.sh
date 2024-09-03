@@ -20,5 +20,5 @@ export DATA_DIRECTORY="/tudelft.net/staff-umbrella/CaptureLab/Recordings"
 export CONTAINER_DATA_DIRECTORY=/home/user/easymocap/EasyMocap/data/examples/_data
 
 
-srun ./run_containers.sh
+srun bash run_containers.sh
 

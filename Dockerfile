@@ -1,7 +1,8 @@
 # https://chingswy.github.io/easymocap-public-doc/install/install.html#20230630-update
 # They recommend python 3.9 + cuda 11.6 + torch 1.12.0
-# We are getting the closest pytorch version that is avaiable in docker hub for cuda 11.6
+# The closest pytorch version that is available in docker hub for cuda 11.6 is 1.13.1-cuda11.6-cudnn8-runtime
 # ->             python 3.10 + cuda 11.6 + torch 1.13.1
+# The newer      python 3.10 + cuda 12.1 + torch 2.2.0   also works well as it is a bit faster
 ARG EASY_MOCAP_BASE_IMAGE_VERSION=0.2.1
 FROM pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime AS base
 

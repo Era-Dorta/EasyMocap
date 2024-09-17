@@ -11,13 +11,13 @@
 apptainer run \
     --nv \
     --containall \
-    --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_png:"${CONTAINER_DATA_DIRECTORY}" \
+    --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_mp4:"${CONTAINER_DATA_DIRECTORY}" \
     $OPENPOSE_IMAGE &
 
 apptainer run \
     --nv \
     --containall \
-    --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_png:"${CONTAINER_DATA_DIRECTORY}" \
+    --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_mp4:"${CONTAINER_DATA_DIRECTORY}" \
     $EASYMOCAP_IMAGE  &
 
 wait

@@ -10,7 +10,7 @@ import numpy as np
 from ..mytools.file_utils import write_common_results
 
 def encode_detect(data):
-    res = write_common_results(None, data, ['keypoints3d'])
+    res = write_common_results(None, data, ['keypoints3d', 'face3d', 'handl3d', 'handr3d'])
     res = res.replace('\r', '').replace('\n', '').replace(' ', '')
     return res.encode('ascii')
 

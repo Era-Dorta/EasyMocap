@@ -58,32 +58,52 @@ class VisOpen3DSocket(BaseSocket):
         else:
             self.body_template = None
         self.body_model = load_object(cfg.body_model.module, cfg.body_model.args)
-        zero_params = self.body_model.init_params(1)
+        self.face_model = load_object(cfg.face_model.module, cfg.face_model.args)
+        self.left_hand_model = load_object(cfg.left_hand_model.module, cfg.left_hand_model.args)
+        self.right_hand_model = load_object(cfg.right_hand_model.module, cfg.right_hand_model.args)
+        zero_params_body = self.body_model.init_params(1)
+        zero_params_face = self.face_model.init_params(1)
+        zero_params_left_hand = self.left_hand_model.init_params(1)
+        zero_params_right_hand = self.right_hand_model.init_params(1)
         self.max_human = cfg.max_human
         self.track = cfg.track
         self.filter = cfg.filter
         self.camera_pose = cfg.camera.camera_pose
         self.init_camera(cfg.camera.camera_pose)
-        self.zero_vertices = Vector3dVector(np.zeros((self.body_model.nVertices, 3)))
+        self.zero_vertices_body = Vector3dVector(np.zeros((self.body_model.nVertices, 3)))
+        self.zero_vertices_face = Vector3dVector(np.zeros((self.face_model.nVertices, 3)))
+        self.zero_vertices_left_hand = Vector3dVector(np.zeros((self.left_hand_model.nVertices, 3)))
+        self.zero_vertices_right_hand = Vector3dVector(np.zeros((self.right_hand_model.nVertices, 3)))
 
         self.vertices, self.meshes = [], []
         for i in range(self.max_human):
-            self.add_human(zero_params)
+            self.add_human(zero_params_body, zero_params_face, zero_params_left_hand, zero_params_right_hand)
 
         self.count = 0
         self.previous = {}
         self.critrange = CritRange(**cfg.range)
         self.new_frames  = cfg.new_frames
     
-    def add_human(self, zero_params):
-        vertices = self.body_model(return_verts=True, return_tensor=False, **zero_params)[0]
-        self.vertices.append(vertices)
+    def add_human(self, zero_params_body, zero_params_face, zero_params_left_hand, zero_params_right_hand):
+        vertices = self.body_model(return_verts=True, return_tensor=False, **zero_params_body)[0]
+        vertices_face = self.face_model(return_verts=True, return_tensor=False, **zero_params_face)[0]
+        vertices_left_hand = self.left_hand_model(return_verts=True, return_tensor=False, **zero_params_left_hand)[0]
+        vertices_right_hand = self.right_hand_model(return_verts=True, return_tensor=False, **zero_params_right_hand)[0]
+        vertices_whole_body = {'body': vertices, 'face': vertices_face, 'left_hand': vertices_left_hand, 'right_hand': vertices_right_hand}
+        self.vertices.append(vertices_whole_body)
         if self.body_template is None: # create template
             mesh = create_mesh(vertices=vertices, faces=self.body_model.faces, colors=self.body_model.color)
+            mesh_face = create_mesh(vertices=vertices_face, faces=self.face_model.faces, colors=self.face_model.color)
+            mesh_left_hand = create_mesh(vertices=vertices_left_hand, faces=self.left_hand_model.faces, colors=self.left_hand_model.color)
+            mesh_right_hand = create_mesh(vertices=vertices_right_hand, faces=self.right_hand_model.faces, colors=self.right_hand_model.color)
         else:
             mesh = copy.deepcopy(self.body_template)
-        self.meshes.append(mesh)
+        mesh_whole_body = {'body': mesh, 'face': mesh_face, 'left_hand': mesh_left_hand, 'right_hand': mesh_right_hand}
+        self.meshes.append(mesh_whole_body)
         self.vis.add_geometry(mesh)
+        self.vis.add_geometry(mesh_face)
+        self.vis.add_geometry(mesh_left_hand)
+        self.vis.add_geometry(mesh_right_hand)
         self.init_camera(self.camera_pose)
 
     @staticmethod
@@ -122,6 +142,12 @@ class VisOpen3DSocket(BaseSocket):
         for data in datas:
             kpts3d = np.array(data['keypoints3d'])
             data['keypoints3d'] = kpts3d
+            flm3d = np.array(data['face3d'])
+            data['face3d'] = flm3d
+            hdls = np.array(data['handl3d'])
+            data['handl3d'] = hdls
+            hdrs = np.array(data['handr3d'])
+            data['handr3d'] = hdrs
             pid = data['id']
             if pid not in self.previous.keys():
                 if not self.critrange(kpts3d):
@@ -159,17 +185,37 @@ class VisOpen3DSocket(BaseSocket):
             if len(params) > 0:
                 params = self.body_model.merge_params(params, share_shape=False)
                 vertices = self.body_model(return_verts=True, return_tensor=False, **params)
+                face_vertices = self.face_model(return_verts=True, return_tensor=False, **params)
+                left_hand_vertices = self.left_hand_model(return_verts=True, return_tensor=False, **params)
+                right_hand_vertices = self.right_hand_model(return_verts=True, return_tensor=False, **params)
                 for i in range(vertices.shape[0]):
-                    self.vertices[i] = Vector3dVector(vertices[i])
+                    self.vertices[i]['body'] = Vector3dVector(vertices[i])
+                    self.vertices[i]['face'] = Vector3dVector(face_vertices[i])
+                    self.vertices[i]['left_hand'] = Vector3dVector(left_hand_vertices[i])
+                    self.vertices[i]['right_hand'] = Vector3dVector(right_hand_vertices[i])
             for i in range(len(datas), len(self.meshes)):
-                self.vertices[i] = self.zero_vertices
+                self.vertices[i]['body'] = self.zero_vertices_body
+                self.vertices[i]['face'] = self.zero_vertices_face
+                self.vertices[i]['left_hand'] = self.zero_vertices_left_hand
+                self.vertices[i]['right_hand'] = self.zero_vertices_right_hand
         # Open3D will lock the thread here
         with Timer('set vertices'):
             for i in range(len(self.vertices)):
-                self.meshes[i].vertices = self.vertices[i]
+                self.meshes[i]['body'].vertices = self.vertices[i]['body']
+                self.meshes[i]['face'].vertices = self.vertices[i]['face']
+                self.meshes[i]['left_hand'].vertices = self.vertices[i]['left_hand']
+                self.meshes[i]['right_hand'].vertices = self.vertices[i]['right_hand']
                 if i < len(datas) and self.track:
-                    col = get_rgb_01(datas[i]['id'])
-                    self.meshes[i].paint_uniform_color(col)
+                    # col = get_rgb_01(datas[i]['id'])
+                    # self.meshes[i]['body'].paint_uniform_color(col)
+                    # self.meshes[i]['face'].paint_uniform_color(col)
+                    # self.meshes[i]['left_hand'].paint_uniform_color(col)
+                    # self.meshes[i]['right_hand'].paint_uniform_color(col)
+                    col = get_rgb_01(datas[0]['id'])
+                    self.meshes[i]['body'].paint_uniform_color(col)
+                    self.meshes[i]['face'].paint_uniform_color(col)
+                    self.meshes[i]['left_hand'].paint_uniform_color(col)
+                    self.meshes[i]['right_hand'].paint_uniform_color(col)
 
     def o3dcallback(self):
         if rotate:
@@ -189,8 +235,14 @@ class VisOpen3DSocket(BaseSocket):
             self.main(datas)
             with Timer('update geometry'):
                 for mesh in self.meshes:
-                    mesh.compute_triangle_normals()
-                    self.vis.update_geometry(mesh)
+                    mesh['body'].compute_triangle_normals()
+                    self.vis.update_geometry(mesh['body'])
+                    mesh['face'].compute_triangle_normals()
+                    self.vis.update_geometry(mesh['face'])
+                    mesh['left_hand'].compute_triangle_normals()
+                    self.vis.update_geometry(mesh['left_hand'])
+                    mesh['right_hand'].compute_triangle_normals()
+                    self.vis.update_geometry(mesh['right_hand'])
                 self.o3dcallback()
                 self.vis.poll_events()
                 self.vis.update_renderer()

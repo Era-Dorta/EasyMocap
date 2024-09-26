@@ -94,7 +94,8 @@ def read_annot(annotname, mode='body25'):
             if key == 'face2d':
                 # TODO: Make parameters, 17 is the offset for the eye brows,
                 # etc. 51 is the total number of FLAME compatible landmarks
-                data[i][key] = data[i][key][17:17+51, :]
+                # data[i][key] = data[i][key][17:17+51, :]
+                data[i][key] = data[i][key]
         if 'bbox' in data[i].keys():
             data[i]['bbox'] = data[i]['bbox'][:5]
             if data[i]['bbox'][-1] < 0.001:
@@ -175,7 +176,7 @@ def write_common_results(dumpname=None, results=[], keys=[], fmt='%2.3f'):
     else:
         return ''.join(out_text)
 
-def write_keypoints3d(dumpname, results, keys = ['keypoints3d']):
+def write_keypoints3d(dumpname, results, keys = ['keypoints3d', 'face3d', 'handl3d', 'handr3d']):
     # TODO:rewrite it
     write_common_results(dumpname, results, keys, fmt='%6.7f')
 

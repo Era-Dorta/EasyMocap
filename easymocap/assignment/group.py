@@ -17,10 +17,13 @@ class Person:
         self.id = pid
         self.age = []
         # property:
-        self.info = {key:None for key in ['bbox', 'kptsRepro', 'keypoints3d', 'Vused']}
+        self.info = {key:None for key in ['bbox', 'kptsRepro', 'keypoints3d', 'Vused', 'face3d', 'handl3d', 'handr3d']}
 
     def add(self, keypoints3d, Vused, **kwargs):
         self.keypoints3d = keypoints3d
+        self.face3d = kwargs['face3d']
+        self.handl3d = kwargs['handl3d']
+        self.handr3d = kwargs['handr3d']
         self.Vused = Vused
 
     def __str__(self) -> str:
@@ -29,6 +32,18 @@ class Person:
     @property
     def keypoints3d(self):
         return self.info['keypoints3d']
+
+    @property
+    def face3d(self):
+        return self.info['face3d']
+
+    @property
+    def handl3d(self):
+        return self.info['handl3d']
+
+    @property
+    def handr3d(self):
+        return self.info['handr3d']
     
     @keypoints3d.setter
     def keypoints3d(self, k3d):
@@ -37,6 +52,21 @@ class Person:
         self.info['keypoints3d'] = k3d
         self.info['bbox'] = bbox
         self.info['kptsRepro'] = kpts_repro
+
+    @face3d.setter
+    def face3d(self, k3d):
+        kpts_repro = projectN3(k3d, self.Pall)
+        self.info['face3d'] = k3d
+
+    @handl3d.setter
+    def handl3d(self, k3d):
+        kpts_repro = projectN3(k3d, self.Pall)
+        self.info['handl3d'] = k3d
+
+    @handr3d.setter
+    def handr3d(self, k3d):
+        kpts_repro = projectN3(k3d, self.Pall)
+        self.info['handr3d'] = k3d
 
     @property
     def bbox(self):
@@ -77,7 +107,7 @@ class PeopleGroup(dict):
     def results(self):
         results = []
         for pid, people in self.items():
-            result = {'id': pid, 'keypoints3d': people.keypoints3d}
+            result = {'id': pid, 'keypoints3d': people.keypoints3d, 'face3d': people.face3d, 'handl3d': people.handl3d, 'handr3d': people.handr3d}
             results.append(result)
         return results
     

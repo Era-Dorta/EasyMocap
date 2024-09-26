@@ -20,9 +20,12 @@ def set_keypoints2d(indices, annots, Pall, dimGroups):
     if len(Vused) < 1:
         return [], [], [], []
     keypoints2d = np.stack([annots[nv][indices[nv]-dimGroups[nv]]['keypoints'].copy() for nv in Vused])
+    face2d = np.stack([annots[nv][indices[nv]-dimGroups[nv]]['face2d'].copy() for nv in Vused])
+    handl2d = np.stack([annots[nv][indices[nv]-dimGroups[nv]]['handl2d'].copy() for nv in Vused])
+    handr2d = np.stack([annots[nv][indices[nv]-dimGroups[nv]]['handr2d'].copy() for nv in Vused])
     bboxes = np.stack([annots[nv][indices[nv]-dimGroups[nv]]['bbox'].copy() for nv in Vused])
     Pused = Pall[Vused]
-    return keypoints2d, bboxes, Pused, Vused
+    return keypoints2d, face2d, handl2d, handr2d, bboxes, Pused, Vused
 
 def load_criterions(cfg):
     criterions = []
@@ -71,8 +74,12 @@ def simple_associate(annots, affinity, dimGroups, Pall, group, cfg):
             if (proposal != -1).sum() < cfg.min_views:
                 continue
             # print('[associate] pop proposal: {}'.format(proposal))
-            keypoints2d, bboxes, Pused, Vused = set_keypoints2d(proposal, annots, Pall, dimGroups)
+            # keypoints2d, bboxes, Pused, Vused = set_keypoints2d(proposal, annots, Pall, dimGroups)
+            keypoints2d, face2d, handl2d, handr2d, bboxes, Pused, Vused = set_keypoints2d(proposal, annots, Pall, dimGroups)
             keypoints3d = batch_triangulate(keypoints2d, Pused)
+            face3d = batch_triangulate(face2d, Pused)
+            handl3d = batch_triangulate(handl2d, Pused)
+            handr3d = batch_triangulate(handr2d, Pused)
             kptsRepro = projectN3(keypoints3d, Pused)
             err = ((kptsRepro[:, :, 2]*keypoints2d[:, :, 2]) > 0.) * np.linalg.norm(kptsRepro[:, :, :2] - keypoints2d[:, :, :2], axis=2)
             size = (bboxes[:, [2, 3]] - bboxes[:, [0, 1]]).max(axis=1, keepdims=True)
@@ -94,6 +101,9 @@ def simple_associate(annots, affinity, dimGroups, Pall, group, cfg):
                     'indices': proposal,
                     'keypoints2d': keypoints2d,
                     'keypoints3d': keypoints3d,
+                    'face3d': face3d,
+                    'handl3d': handl3d,
+                    'handr3d': handr3d,
                     'Vused': Vused,
                     'error': err
                 })

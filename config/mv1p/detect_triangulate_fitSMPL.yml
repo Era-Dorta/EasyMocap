@@ -145,23 +145,23 @@ args:
       key_from_previous: [params, model]
       args:
         name: smpl
-    # render:
-    #   module: myeasymocap.io.vis3d.Render_multiview
-    #   key_from_data: [cameras, imgnames]
-    #   key_from_previous: [params, body_model]
-    #   args:
-    #     backend: pyrender
-    #     view_list: [0]
-    render_ground:
+    render:
       module: myeasymocap.io.vis3d.Render_multiview
       key_from_data: [cameras, imgnames]
       key_from_previous: [params, body_model]
       args:
         backend: pyrender
-        view_list: [3]
-        mode: ground
-        scale: 1.
-        shape: [1024, 1024]
+        view_list: [0]
+    # render_ground:
+    #   module: myeasymocap.io.vis3d.Render_multiview
+    #   key_from_data: [cameras, imgnames]
+    #   key_from_previous: [params, body_model]
+    #   args:
+    #     backend: pyrender
+    #     view_list: [1]
+    #     mode: ground
+    #     scale: 1.
+    #     shape: [1024, 1024]
     make_video:
       module: myeasymocap.io.video.MakeVideo
       args:

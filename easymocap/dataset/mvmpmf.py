@@ -21,7 +21,7 @@ class MVMPMF(MVBase):
     def write_keypoints3d(self, peopleDict, nf):
         results = []
         for pid, people in peopleDict.items():
-            result = {'id': pid, 'keypoints3d': people.keypoints3d}
+            result = {'id': pid, 'keypoints3d': people.keypoints3d, 'face3d': people.face3d, 'handl3d': people.handl3d, 'handr3d': people.handr3d}
             results.append(result)
         super().write_keypoints3d(results, nf)
     

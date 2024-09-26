@@ -450,6 +450,12 @@ class MVBase:
                 det['bbox'] = Undistort.bbox(det['bbox'], K=camera['K'], dist=camera['dist'])
                 keypoints = det['keypoints']
                 det['keypoints'] = Undistort.points(keypoints=keypoints, K=camera['K'], dist=camera['dist'])
+                face2d = det['face2d']
+                det['face2d'] = Undistort.points(keypoints=face2d, K=camera['K'], dist=camera['dist'])
+                handl2d = det['handl2d']
+                det['handl2d'] = Undistort.points(keypoints=handl2d, K=camera['K'], dist=camera['dist'])
+                handr2d = det['handr2d']
+                det['handr2d'] = Undistort.points(keypoints=handr2d, K=camera['K'], dist=camera['dist'])
         return lDetections
 
     def select_person(self, annots_all, index, pid):
@@ -460,13 +466,22 @@ class MVBase:
                 data = data[0]
                 bbox = data['bbox']
                 keypoints = data['keypoints']
+                face2d = data['face2d']
+                handl2d = data['handl2d']
+                handr2d = data['handr2d']
             else:
                 if self.verbose:print('not found pid {} in frame {}, view {}'.format(self.pid, index, nv))
                 keypoints = np.zeros((self.config['nJoints'], 3))
+                face2d = np.zeros((70, 3))
+                handl2d = np.zeros((21, 3))
+                handr2d = np.zeros((21, 3))
                 bbox = np.array([0, 0, 100., 100., 0.])
             annots['bbox'].append(bbox)
             annots['keypoints'].append(keypoints)
-        for key in ['bbox', 'keypoints']:
+            annots['face2d'].append(face2d)
+            annots['handl2d'].append(handl2d)
+            annots['handr2d'].append(handr2d)
+        for key in ['bbox', 'keypoints', 'face2d', 'handl2d', 'handr2d']:
             annots[key] = np.stack(annots[key])
         return annots
 

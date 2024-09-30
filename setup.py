@@ -9,7 +9,7 @@ from setuptools import setup
 
 setup(
     name='easymocap',     
-    version='0.2.1',   #
+    version='0.2.1-hands-face',   #
     description='Easy Human Motion Capture Toolbox',
     author='Qing Shuai', 
     author_email='s_q@zju.edu.cn',

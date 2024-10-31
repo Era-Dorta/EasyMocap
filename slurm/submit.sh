@@ -1,9 +1,9 @@
 #!/bin/sh
 #SBATCH --job-name="easymocap"
-#SBATCH --account=ewi-insy-reit
-#SBATCH --partition=general
-#SBATCH --ntasks=1 --cpus-per-task=1
-#SBATCH --mem-per-cpu=16G
+#SBATCH --account=ewi-insy-prb-visionlab
+#SBATCH --partition=insy,general
+#SBATCH --ntasks=1 --cpus-per-task=8
+#SBATCH --mem-per-cpu=10G
 #SBATCH --gres=gpu
 #SBATCH --time=10:00
 #SBATCH --qos=short

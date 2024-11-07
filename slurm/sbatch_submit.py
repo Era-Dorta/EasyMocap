@@ -33,7 +33,7 @@ def submit_processing_jobs(recording_number: str, account: str, partition: str, 
     # fmt: off
     cmd = [
         "sbatch",
-        "--job-name", f"2d-keypoints-{name_identifier}",
+        "--job-name", f"get-2d-keypoints-{name_identifier}",
         "--account", account,
         "--partition", partition,
         "submit_extract_2d_keypoints.sh",
@@ -60,7 +60,7 @@ def submit_processing_jobs(recording_number: str, account: str, partition: str, 
     # fmt: off
     cmd = [
         "sbatch",
-        "--job-name", f"2d-to-3d-keypoints-{name_identifier}",
+        "--job-name", f"2d-keypoints-to-3d-{name_identifier}",
         "--account", account,
         "--partition", partition,
         "--dependency", f"afterok:{job_id}",

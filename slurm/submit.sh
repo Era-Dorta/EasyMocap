@@ -12,7 +12,7 @@
 # OpenPose does not work on the newer A40 GPUs. Exclude them until we figure out a better solution.
 
 export RECORDING_NUMBER=154
-export EASYMOCAP_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/easymocap-0.2.2.sif"
+export EASYMOCAP_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/easymocap-0.2.3.sif"
 export OPENPOSE_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/openpose-1.7.0.sif"
 export DATA_DIRECTORY="/tudelft.net/staff-umbrella/CaptureLab/Recordings"
 

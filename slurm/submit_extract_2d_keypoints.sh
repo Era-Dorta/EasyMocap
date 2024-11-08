@@ -5,9 +5,9 @@
 #SBATCH --time=5:00
 #SBATCH --qos=long
 #SBATCH --gres=gpu
-#SBATCH --exclude=awi01,awi02,cor1
-
-# Exclude the V100 GPUs. The mp4 that those GPUs generate are 4x larger than with the other GPUs
+#SBATCH --exclude=gpu[01-12],gpu[14-29]
+ 
+# Exclude the A40 GPUs, OpenPose cannot run in those.
 
 # 3D keypoint extraction and visualisation using OpenPose and EasyMocap
 
@@ -24,6 +24,9 @@ apptainer run \
     $OPENPOSE_IMAGE &
 
 data=/home/user/easymocap/EasyMocap/data/examples/_data
+
+# Wait for the OpenPose container to start, otherwise we might get connection errors
+sleep 30
 
 apptainer run \
     --nv \

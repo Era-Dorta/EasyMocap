@@ -16,7 +16,7 @@ apptainer run \
     --containall \
     --cwd /home/user/easymocap/EasyMocap \
     --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_processed:"${CONTAINER_DATA_DIRECTORY}" \
-    $OPENPOSE_IMAGE \
+    $EASYMOCAP_IMAGE \
     python apps/demo/mvmp.py ${data} --out ${data}/output --annot annots --cfg config/exp/mvmp1f.yml --undis
 
 # Add these flags for generating visualisations

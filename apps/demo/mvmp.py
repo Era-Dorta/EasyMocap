@@ -47,8 +47,9 @@ def mvposev1(dataset, args, cfg):
             vis3d.send(group.results)
     Timer.report()
 
-    # Tell the openpose docker container to shut down 
-    requests.get('http://127.0.0.1:5001/shutdown')
+    if args.openpose_shutdown:
+        # Tell the openpose docker container to shut down 
+        requests.get('http://127.0.0.1:5001/shutdown')
 
 if __name__ == "__main__":
     from easymocap.mytools import load_parser, parse_parser
@@ -60,6 +61,7 @@ if __name__ == "__main__":
     parser.add_argument('--no_write', action='store_true')
     parser.add_argument("--host", type=str, default='none')  # cn0314000675l
     parser.add_argument("--port", type=int, default=9999)
+    parser.add_argument("--openpose_shutdown", action='store_true')
     args = parse_parser(parser)
     from easymocap.config.mvmp1f import Config
     cfg = Config.load(args.cfg, args.cfg_opts)

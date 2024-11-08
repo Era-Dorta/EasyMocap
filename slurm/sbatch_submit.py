@@ -4,7 +4,6 @@ import subprocess
 import time
 from pathlib import Path
 
-RECORDING_NUMBER="154_short"
 EASYMOCAP_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/easymocap-0.2.2.sif"
 OPENPOSE_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/openpose-1.7.0.sif"
 DATA_DIRECTORY="/tudelft.net/staff-umbrella/CaptureLab/Recordings"

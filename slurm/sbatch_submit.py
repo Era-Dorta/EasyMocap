@@ -3,6 +3,7 @@ import os
 import subprocess
 import time
 from pathlib import Path
+import argparse
 
 EASYMOCAP_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/easymocap-0.2.3.sif"
 OPENPOSE_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/openpose-1.7.0.sif"
@@ -23,7 +24,7 @@ def get_job_environ(recording_number: str) -> dict[str, str]:
     return env
 
 
-def submit_processing_jobs(recording_number: str, account: str, partition: str, verbose: bool = False
+def submit_processing_jobs(recording_number: str, account: str, partition: str, verbose: bool = False, dep_job_ids: None |  list[int] = None
 ) -> tuple[int, int]:
     new_env = get_job_environ(recording_number)
     name_identifier = f"{recording_number}"
@@ -38,6 +39,10 @@ def submit_processing_jobs(recording_number: str, account: str, partition: str, 
         "submit_extract_2d_keypoints.sh",
     ]
     # fmt: on
+
+    if dep_job_ids is not None:
+        job_deps_str = ":".join(map(str, dep_job_ids))
+        cmd += ["--dependency", f"afterok:{job_deps_str}"]
 
     if verbose:
         print(" ".join(cmd))
@@ -107,22 +112,27 @@ def submit_clean_up_job(recording_number: str, job_dependencies: list[int], verb
     return int(stdout.replace("Submitted batch job ", ""))
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dep-job-ids', nargs="*", type=int, help='Depdency job ids.')
+    parser.add_argument('--account', default="ewi-insy-prb", help='Account.')
+    parser.add_argument('--recording_number', default="154_short", help='The recording number.')
+    parser.add_argument('--partition', default="insy,general", help='Partition to use.')
+    parser.add_argument('--verbose', action='store_true')
+    args = parser.parse_args()
+
     os.chdir(Path(__file__).parent)
 
-    account = "ewi-insy-prb"
-    partition = "insy,general"
-    recording_number = "154_short"
-    verbose = False
     add_clean_up_job = False
 
     job_ids = list(submit_processing_jobs(
-        recording_number=recording_number,
-        account=account,
-        partition=partition,
-        verbose=verbose,
+        recording_number=args.recording_number,
+        account=args.account,
+        partition=args.partition,
+        verbose=args.verbose,
+        dep_job_ids=args.dep_job_ids
     ))
 
     if add_clean_up_job:
-        job_ids.append(submit_clean_up_job(recording_number, job_ids, verbose=verbose))
+        job_ids.append(submit_clean_up_job(args.recording_number, job_ids, verbose=args.verbose))
 
     print(f"\nIf you made a mistake, you can cancel the jobs with\nscancel {' '.join(map(str, job_ids))}")

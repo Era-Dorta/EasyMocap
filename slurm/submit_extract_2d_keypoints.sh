@@ -31,6 +31,6 @@ apptainer run \
     --cwd /home/user/easymocap/EasyMocap \
     --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_processed:"${CONTAINER_DATA_DIRECTORY}" \
     $EASYMOCAP_IMAGE \
-    python apps/preprocess/extract_keypoints.py ${data} --mode openpose --hand --face --ext .png &
+    python apps/preprocess/extract_keypoints.py ${data} --mode openpose --hand --face --ext .png --shutdown_openpose &
 
 wait

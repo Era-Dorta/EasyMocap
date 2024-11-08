@@ -9,6 +9,7 @@ import os
 from os.path import join
 from tqdm import tqdm
 import numpy as np
+import requests
 
 def load_subs(path, subs):
     if len(subs) == 0:
@@ -109,6 +110,7 @@ if __name__ == "__main__":
         help='remove crowd class of yolo')
     parser.add_argument('--reverse', action='store_true')
     parser.add_argument('--force', action='store_true')
+    parser.add_argument('--shutdown_openpose', action='store_true')
     args = parser.parse_args()
     config['yolo']['isWild'] = args.wild
     mode = args.mode
@@ -195,3 +197,7 @@ if __name__ == "__main__":
         
     for task in global_tasks:
         task.join()
+
+    if mode == 'openpose' and args.shutdown_openpose:
+        # Tell the openpose docker container to shut down 
+        requests.get('http://127.0.0.1:5001/shutdown')

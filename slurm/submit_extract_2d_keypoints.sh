@@ -1,7 +1,7 @@
 #!/bin/sh
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem-per-cpu=16G
+#SBATCH --mem=16G
 #SBATCH --time=5:00
 #SBATCH --qos=long
 #SBATCH --gres=gpu

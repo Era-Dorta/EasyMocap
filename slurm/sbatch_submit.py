@@ -36,13 +36,14 @@ def submit_processing_jobs(recording_number: str, account: str, partition: str, 
         "--job-name", f"get-2d-keypoints-{name_identifier}",
         "--account", account,
         "--partition", partition,
-        "submit_extract_2d_keypoints.sh",
     ]
     # fmt: on
 
     if dep_job_ids is not None:
         job_deps_str = ":".join(map(str, dep_job_ids))
         cmd += ["--dependency", f"afterok:{job_deps_str}"]
+
+    cmd += ["submit_extract_2d_keypoints.sh"]
 
     if verbose:
         print(" ".join(cmd))
@@ -83,9 +84,9 @@ def submit_processing_jobs(recording_number: str, account: str, partition: str, 
     return job_id, int(stdout.replace("Submitted batch job ", ""))
 
 
-def submit_clean_up_job(recording_number: str, job_dependencies: list[int], verbose: bool = False):
+def submit_clean_up_job(recording_number: str, account: str, partition: str, job_dependencies: list[int], verbose: bool = False):
     """Submit a job that will delete the directory with the png files."""
-    new_env = get_job_environ(None, recording_number)
+    new_env = get_job_environ(recording_number)
 
     print(f"Clean up for {recording_number}")
     job_deps_str = ":".join(map(str, job_dependencies))
@@ -129,10 +130,16 @@ if __name__ == "__main__":
         account=args.account,
         partition=args.partition,
         verbose=args.verbose,
-        dep_job_ids=args.dep_job_ids
+        dep_job_ids=args.dep_job_ids,
     ))
 
     if add_clean_up_job:
-        job_ids.append(submit_clean_up_job(args.recording_number, job_ids, verbose=args.verbose))
+        job_ids.append(submit_clean_up_job(
+            recording_number=args.recording_number,
+            account=args.account,
+            partition=args.partition,
+            job_dependencies=job_ids,
+            verbose=args.verbose,
+         ))
 
     print(f"\nIf you made a mistake, you can cancel the jobs with\nscancel {' '.join(map(str, job_ids))}")

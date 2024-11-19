@@ -111,6 +111,7 @@ if __name__ == "__main__":
     parser.add_argument('--reverse', action='store_true')
     parser.add_argument('--force', action='store_true')
     parser.add_argument('--shutdown_openpose', action='store_true')
+    parser.add_argument('--folder_to_process', type=str)
     args = parser.parse_args()
     config['yolo']['isWild'] = args.wild
     mode = args.mode
@@ -146,7 +147,14 @@ if __name__ == "__main__":
     global_tasks = []
     if len(subs) == 0:
         subs = ['']
+
+    if args.folder_to_process == "":
+        args.folder_to_process = None
+
     for sub in subs:
+        if args.folder_to_process is not None and sub != args.folder_to_process:
+            continue
+            
         config[mode]['force'] = args.force
         image_root = join(args.path, 'images', sub)
         annot_root = join(args.path, args.annot, sub)

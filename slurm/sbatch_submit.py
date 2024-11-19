@@ -24,43 +24,62 @@ def get_job_environ(recording_number: str) -> dict[str, str]:
     return env
 
 
-def submit_processing_jobs(recording_number: str, account: str, partition: str, verbose: bool = False, dep_job_ids: None |  list[int] = None
-) -> tuple[int, int]:
+def submit_processing_jobs(recording_number: str,
+                           account: str,
+                           partition: str,
+                           verbose: bool = False,
+                           dep_job_ids: None |  list[int] = None,
+                           cameras_to_process: list[int] = None,
+) -> list[int]:
     new_env = get_job_environ(recording_number)
-    name_identifier = f"{recording_number}"
-    print(name_identifier)
 
-    # fmt: off
-    cmd = [
-        "sbatch",
-        "--job-name", f"get-2d-keypoints-{name_identifier}",
-        "--account", account,
-        "--partition", partition,
-    ]
-    # fmt: on
+    if cameras_to_process is None:
+        _cameras_to_process = ["all"]
+    else:
+        _cameras_to_process = cameras_to_process
+    keypoint_job_ids = []
+    for camera_name in _cameras_to_process:
+        name_identifier = f"{recording_number}-{camera_name}"
+        print(name_identifier)
 
-    if dep_job_ids is not None:
-        job_deps_str = ":".join(map(str, dep_job_ids))
-        cmd += ["--dependency", f"afterok:{job_deps_str}"]
+        if cameras_to_process is None:
+            new_env["CAMERA_TO_PROCESS"] = ""
+        else:
+            new_env["CAMERA_TO_PROCESS"] = camera_name
 
-    cmd += ["submit_extract_2d_keypoints.sh"]
+        # fmt: off
+        cmd = [
+            "sbatch",
+            "--job-name", f"get-2d-keypoints-{name_identifier}",
+            "--account", account,
+            "--partition", partition,
+        ]
+        # fmt: on
 
-    if verbose:
-        print(" ".join(cmd))
+        if dep_job_ids is not None:
+            job_deps_str = ":".join(map(str, dep_job_ids))
+            cmd += ["--dependency", f"afterok:{job_deps_str}"]
 
-    ret = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=new_env)
+        cmd += ["submit_extract_2d_keypoints.sh"]
 
-    time.sleep(0.1)  # Wait a bit to ensure slurm doesn't crash from submitting jobs too fast
+        if verbose:
+            print(" ".join(cmd))
 
-    if ret.returncode != 0:
-        raise RuntimeError(ret.stdout + ret.stderr)
+        ret = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=new_env)
 
-    stdout = ret.stdout.decode("utf-8")
-    if not stdout.startswith("Submitted batch job"):
-        raise RuntimeError(ret.stdout + ret.stderr)
+        time.sleep(0.1)  # Wait a bit to ensure slurm doesn't crash from submitting jobs too fast
 
-    print(stdout.strip())
-    job_id = int(stdout.replace("Submitted batch job ", ""))
+        if ret.returncode != 0:
+            raise RuntimeError(ret.stdout + ret.stderr)
+
+        stdout = ret.stdout.decode("utf-8")
+        if not stdout.startswith("Submitted batch job"):
+            raise RuntimeError(ret.stdout + ret.stderr)
+
+        print(stdout.strip())
+        keypoint_job_ids.append(int(stdout.replace("Submitted batch job ", "")))
+
+    keypoint_job_ids_str = " ".join(map(str, keypoint_job_ids))
 
     # fmt: off
     cmd = [
@@ -68,7 +87,7 @@ def submit_processing_jobs(recording_number: str, account: str, partition: str, 
         "--job-name", f"2d-keypoints-to-3d-{name_identifier}",
         "--account", account,
         "--partition", partition,
-        "--dependency", f"afterok:{job_id}",
+        "--dependency", f"afterok:{keypoint_job_ids_str}",
         "submit_lift_2d_keypoints_to_3d.sh",
     ]
     # fmt: on
@@ -81,7 +100,7 @@ def submit_processing_jobs(recording_number: str, account: str, partition: str, 
 
     stdout = ret.stdout.decode("utf-8")
     print(stdout.strip() + "\n")
-    return job_id, int(stdout.replace("Submitted batch job ", ""))
+    return keypoint_job_ids + [int(stdout.replace("Submitted batch job ", ""))]
 
 
 def submit_clean_up_job(recording_number: str, account: str, partition: str, job_dependencies: list[int], verbose: bool = False):
@@ -119,6 +138,14 @@ if __name__ == "__main__":
     parser.add_argument('--recording_number', default="154_short", help='The recording number.')
     parser.add_argument('--partition', default="insy,general", help='Partition to use.')
     parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--cameras_to_process',
+                        type=str,
+                        nargs='+',
+                        help="""
+                            List of folder names to process. One job per folder will be launched.
+                            If not provided, all folders will be processed in a single job.
+                            """
+                        )
     args = parser.parse_args()
 
     os.chdir(Path(__file__).parent)

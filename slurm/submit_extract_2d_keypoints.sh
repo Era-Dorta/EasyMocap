@@ -17,7 +17,7 @@
 # --nv to get access to the nvidia GPUs in the host system
 # --containall to not mount any directory from the host system by default
 # --bind mount the data directory in the container
-apptainer run \
+srun apptainer run \
     --nv \
     --containall \
     --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_processed:"${CONTAINER_DATA_DIRECTORY}" \
@@ -28,7 +28,7 @@ data=/home/user/easymocap/EasyMocap/data/examples/_data
 # Wait for the OpenPose container to start, otherwise we might get connection errors
 sleep 30
 
-apptainer run \
+srun apptainer run \
     --nv \
     --containall \
     --cwd /home/user/easymocap/EasyMocap \

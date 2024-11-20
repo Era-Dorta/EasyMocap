@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 import argparse
 
-EASYMOCAP_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/easymocap-0.2.3.sif"
+EASYMOCAP_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/easymocap-0.2.4.sif"
 OPENPOSE_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/openpose-1.7.0.sif"
 DATA_DIRECTORY="/tudelft.net/staff-umbrella/CaptureLab/Recordings"
 
@@ -76,15 +76,15 @@ def submit_processing_jobs(recording_number: str,
         if not stdout.startswith("Submitted batch job"):
             raise RuntimeError(ret.stdout + ret.stderr)
 
-        print(stdout.strip())
+        print(stdout.strip() + "\n")
         keypoint_job_ids.append(int(stdout.replace("Submitted batch job ", "")))
 
-    keypoint_job_ids_str = " ".join(map(str, keypoint_job_ids))
+    keypoint_job_ids_str = ":".join(map(str, keypoint_job_ids))
 
     # fmt: off
     cmd = [
         "sbatch",
-        "--job-name", f"2d-keypoints-to-3d-{name_identifier}",
+        "--job-name", f"2d-keypoints-to-3d-{recording_number}",
         "--account", account,
         "--partition", partition,
         "--dependency", f"afterok:{keypoint_job_ids_str}",
@@ -158,6 +158,7 @@ if __name__ == "__main__":
         partition=args.partition,
         verbose=args.verbose,
         dep_job_ids=args.dep_job_ids,
+        cameras_to_process=args.cameras_to_process
     ))
 
     if add_clean_up_job:

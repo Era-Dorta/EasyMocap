@@ -37,6 +37,7 @@ def submit_processing_jobs(recording_number: str,
         _cameras_to_process = ["all"]
     else:
         _cameras_to_process = cameras_to_process
+    print("Extract 2D keypoints")
     keypoint_job_ids = []
     for camera_name in _cameras_to_process:
         name_identifier = f"{recording_number}-{camera_name}"
@@ -98,6 +99,7 @@ def submit_processing_jobs(recording_number: str,
     ret = subprocess.run(cmd, env=new_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     time.sleep(0.1)
 
+    print("Lift 2D keypoints to 3D")
     stdout = ret.stdout.decode("utf-8")
     print(stdout.strip() + "\n")
     return keypoint_job_ids + [int(stdout.replace("Submitted batch job ", ""))]

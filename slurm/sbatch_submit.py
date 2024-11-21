@@ -6,7 +6,7 @@ from pathlib import Path
 import argparse
 
 EASYMOCAP_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/easymocap-0.2.4.sif"
-OPENPOSE_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/openpose-1.7.0.sif"
+OPENPOSE_IMAGE="/tudelft.net/staff-umbrella/CaptureLab/Apptainer/openpose-1.7.1.sif"
 DATA_DIRECTORY="/tudelft.net/staff-umbrella/CaptureLab/Recordings"
 
 # The data directory inside the container

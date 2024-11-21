@@ -111,6 +111,7 @@ if __name__ == "__main__":
     parser.add_argument('--reverse', action='store_true')
     parser.add_argument('--force', action='store_true')
     parser.add_argument('--shutdown_openpose', action='store_true')
+    parser.add_argument("--openpose_port", type=int)
     parser.add_argument('--folder_to_process', type=str)
     args = parser.parse_args()
     config['yolo']['isWild'] = args.wild
@@ -171,6 +172,7 @@ if __name__ == "__main__":
             config[mode]['face'] = args.face
             config[mode]['res'] = args.openpose_res
             config[mode]['ext'] = args.ext
+            config[mode]['openpose_port'] = args.openpose_port
             global_tasks = extract_2d(image_root, annot_root, tmp_root, config[mode])
         elif mode == 'feet':
             from easymocap.estimator.openpose_wrapper import FeetEstimator
@@ -208,4 +210,4 @@ if __name__ == "__main__":
 
     if mode == 'openpose' and args.shutdown_openpose:
         # Tell the openpose docker container to shut down 
-        requests.get('http://127.0.0.1:5001/shutdown')
+        requests.get(f'http://127.0.0.1:{args.openpose_port}/shutdown')

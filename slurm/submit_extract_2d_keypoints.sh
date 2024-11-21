@@ -11,17 +11,15 @@
 
 # 3D keypoint extraction and visualisation using OpenPose and EasyMocap
 
-# The OpenPose container waits for commands from the EasyMocap container
+# Get a free port to run the OpenPose container with
+OPENPOSE_PORT=$(python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
 
-# Run the containers with the following flags
-# --nv to get access to the nvidia GPUs in the host system
-# --containall to not mount any directory from the host system by default
-# --bind mount the data directory in the container
+# The OpenPose container waits for commands from the EasyMocap container
 srun apptainer run \
     --nv \
     --containall \
     --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_processed:"${CONTAINER_DATA_DIRECTORY}" \
-    $OPENPOSE_IMAGE &
+    $OPENPOSE_IMAGE --openpose_port $OPENPOSE_PORT &
 
 data=/home/user/easymocap/EasyMocap/data/examples/_data
 
@@ -35,6 +33,12 @@ srun apptainer run \
     --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_processed:"${CONTAINER_DATA_DIRECTORY}" \
     $EASYMOCAP_IMAGE \
     python apps/preprocess/extract_keypoints.py ${data} \
-      --mode openpose --hand --face --ext .png --shutdown_openpose --folder_to_process $CAMERA_TO_PROCESS &
+      --mode openpose \
+      --hand \
+      --face \
+      --ext .png \
+      --shutdown_openpose \
+      --openpose_port $OPENPOSE_PORT \
+      --folder_to_process $CAMERA_TO_PROCESS &
 
 wait

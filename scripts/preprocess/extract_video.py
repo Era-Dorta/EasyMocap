@@ -64,7 +64,7 @@ def extract_2d(openpose, image, keypoints, render, args):
             cmd = cmd + ' --render_pose 0'
         print(cmd)
 
-        response = requests.get('http://127.0.0.1:5001/run_command', json={"cmd": cmd})
+        response = requests.get(f'http://127.0.0.1:{args.openpose_port}/run_command', json={"cmd": cmd})
         if response.status_code != 200:
             raise RuntimeError('Error: {}'.format(response.text))
 
@@ -250,6 +250,7 @@ if __name__ == "__main__":
         help='use the ground-truth bounding box, and hrnet to estimate human pose')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--path_origin', default=os.getcwd())
+    parser.add_argument("--openpose_port", type=int)
     args = parser.parse_args()
     mode = args.mode
 

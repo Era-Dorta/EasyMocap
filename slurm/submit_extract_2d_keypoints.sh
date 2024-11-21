@@ -15,7 +15,7 @@
 OPENPOSE_PORT=$(python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
 
 # The OpenPose container waits for commands from the EasyMocap container
-srun apptainer run \
+apptainer run \
     --nv \
     --containall \
     --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_processed:"${CONTAINER_DATA_DIRECTORY}" \
@@ -26,7 +26,7 @@ data=/home/user/easymocap/EasyMocap/data/examples/_data
 # Wait for the OpenPose container to start, otherwise we might get connection errors
 sleep 30
 
-srun apptainer run \
+apptainer run \
     --nv \
     --containall \
     --cwd /home/user/easymocap/EasyMocap \

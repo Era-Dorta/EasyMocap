@@ -12,7 +12,7 @@ data=/home/user/easymocap/EasyMocap/data/examples/_data
 # --nv to get access to the nvidia GPUs in the host system
 # --containall to not mount any directory from the host system by default
 # --bind mount the data directory in the container
-srun apptainer run \
+apptainer run \
     --containall \
     --cwd /home/user/easymocap/EasyMocap \
     --bind "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_processed:"${CONTAINER_DATA_DIRECTORY}" \

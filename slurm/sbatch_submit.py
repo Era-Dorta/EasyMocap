@@ -173,3 +173,6 @@ if __name__ == "__main__":
          ))
 
     print(f"\nIf you made a mistake, you can cancel the jobs with\nscancel {' '.join(map(str, job_ids))}")
+
+
+# ./sbatch_submit.py --recording_number 189_dev_test_3_cams --cameras_to_process LC_1 RC_1

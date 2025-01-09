@@ -17,7 +17,11 @@ RUN apt update && \
 
 COPY requirements.txt .
 
-RUN pip3 install -r requirements.txt && \
+# Old mediapipe versions were deleted from pypi, install manually from copy in the repo
+COPY 3rdparty/mediapipe-0.10.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl .
+
+RUN pip3 install mediapipe-0.10.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl && \
+    pip3 install -r requirements.txt && \
     pip3 install spconv-cu116 pyrender && \
     pip3 cache purge
 

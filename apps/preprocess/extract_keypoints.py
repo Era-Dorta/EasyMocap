@@ -113,6 +113,7 @@ if __name__ == "__main__":
     parser.add_argument('--shutdown_openpose', action='store_true')
     parser.add_argument("--openpose_port", type=int)
     parser.add_argument('--folder_to_process', type=str)
+    parser.add_argument('--process_mode', type=str, default="images")
     args = parser.parse_args()
     config['yolo']['isWild'] = args.wild
     mode = args.mode
@@ -173,6 +174,7 @@ if __name__ == "__main__":
             config[mode]['res'] = args.openpose_res
             config[mode]['ext'] = args.ext
             config[mode]['openpose_port'] = args.openpose_port
+            config[mode]['process_mode'] = args.process_mode
             global_tasks = extract_2d(image_root, annot_root, tmp_root, config[mode])
         elif mode == 'feet':
             from easymocap.estimator.openpose_wrapper import FeetEstimator

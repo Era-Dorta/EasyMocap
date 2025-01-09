@@ -13,10 +13,11 @@ def check_result(image_root, annot_root):
             return True
     return False
 
-def create_annot_file(annotname, imgname):
+def create_annot_file(annotname, imgname, width, height):
     assert os.path.exists(imgname), imgname
-    img = cv2.imread(imgname)
-    height, width = img.shape[0], img.shape[1]
+    if width is None or height is None:
+        img = cv2.imread(imgname)
+        height, width = img.shape[0], img.shape[1]
     imgnamesep = imgname.split(os.sep)
     filename = os.sep.join(imgnamesep[imgnamesep.index('images'):])
     annot = {

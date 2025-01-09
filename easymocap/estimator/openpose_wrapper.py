@@ -17,6 +17,7 @@ import cv2
 from glob import glob
 from multiprocessing import Process
 import requests
+from pathlib import Path
 
 def run_openpose(image_root, annot_root, config):
     image_root = os.path.realpath(image_root)
@@ -24,8 +25,16 @@ def run_openpose(image_root, annot_root, config):
 
     os.makedirs(annot_root, exist_ok=True)
     if os.name != 'nt':
-        cmd = './build/examples/openpose/openpose.bin --image_dir {} --write_json {} --display 0'.format(
-            image_root, annot_root)
+        if config["process_mode"] == "images":
+            cmd = './build/examples/openpose/openpose.bin --image_dir {} --write_json {} --display 0'.format(
+                image_root, annot_root)
+        elif config["process_mode"] == "videos":
+            video_root = str(Path(image_root).parents[1] / "videos" / (Path(image_root).name + ".mp4"))
+            cmd = './build/examples/openpose/openpose.bin --video {} --write_json {} --display 0'.format(
+                video_root, annot_root)
+        else:
+            raise NotImplementedError('Process mode %s not support process mode' % config["process_mode"])
+
     else:
         cmd = 'bin\\OpenPoseDemo.exe --image_dir {} --write_json {} --display 0'.format(
             os.path.abspath(image_root), os.path.abspath(annot_root))
@@ -44,8 +53,20 @@ def run_openpose(image_root, annot_root, config):
     response = requests.get(f'http://127.0.0.1:{config["openpose_port"]}/run_command', json={"cmd": cmd})
     if response.status_code != 200:
         raise RuntimeError('Error: {}'.format(response.text))
+    
+    if config["process_mode"] == "videos":
+        # Fill up the image folder with empty files that pretend to be images
+        i = 0
+        for annot in sorted(Path(annot_root).iterdir()):
+            if annot.suffix == ".json":
+                # Rename annotations to match the names when they are generated from images
+                annot.rename(Path(annot_root) / (f"{i:06d}_keypoints.json"))
 
-def convert_from_openpose(src, dst, image_root, ext):
+                with (Path(image_root) / (f"{i:06d}{config['ext']}")).open("w"):
+                    pass
+                i += 1
+
+def convert_from_openpose(src, dst, image_root, ext, width, height):
     # convert the 2d pose from openpose
     inputlist = sorted(os.listdir(src))
     for inp in tqdm(inputlist, desc='{:10s}'.format(os.path.basename(dst))):
@@ -53,7 +74,7 @@ def convert_from_openpose(src, dst, image_root, ext):
         base = inp.replace('_keypoints.json', '')
         annotname = join(dst, base+'.json')
         imgname = join(image_root, inp.replace('_keypoints.json', ext))
-        annot = create_annot_file(annotname, imgname)
+        annot = create_annot_file(annotname, imgname, width, height)
         annot['annots'] = annots
         save_annot(annotname, annot)
 
@@ -64,9 +85,18 @@ def extract_2d(image_root, annot_root, tmp_root, config):
         return global_tasks
     if not check_result(image_root, tmp_root):
         run_openpose(image_root, tmp_root, config)
+
+    if config["process_mode"] == "videos":
+        vcap = cv2.VideoCapture(Path(image_root).parents[1] / "videos" / (Path(image_root).name + ".mp4"))
+        width  = int(vcap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(vcap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        vcap.release()
+    else:
+        width, height = None, None
+
     # TODO: add current task to global_tasks
     thread = Process(target=convert_from_openpose, 
-        args=(tmp_root, annot_root, image_root, config['ext'])) # 应该不存在任何数据竞争
+        args=(tmp_root, annot_root, image_root, config['ext'], width, height)) # 应该不存在任何数据竞争
     thread.start()
     global_tasks.append(thread)
     return global_tasks

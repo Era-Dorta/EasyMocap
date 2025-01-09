@@ -60,9 +60,9 @@ def run_openpose(image_root, annot_root, config):
         for annot in sorted(Path(annot_root).iterdir()):
             if annot.suffix == ".json":
                 # Rename annotations to match the names when they are generated from images
-                annot.rename(Path(annot_root) / (f"{i:06d}_keypoints.json"))
+                annot.rename(Path(annot_root) / (f"{i:09d}_keypoints.json"))
 
-                with (Path(image_root) / (f"{i:06d}{config['ext']}")).open("w"):
+                with (Path(image_root) / (f"{i:09d}{config['ext']}")).open("w"):
                     pass
                 i += 1
 

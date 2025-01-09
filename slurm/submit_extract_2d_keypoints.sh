@@ -23,6 +23,13 @@ apptainer run \
 
 data=/home/user/easymocap/EasyMocap/data/examples/_data
 
+if [ "$PROCESS_MODE" == "videos" ]
+then
+    # Create the image directory to avoid the automatic image extraction from video from EasyMocap
+    mkdir -p "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_processed/images/$CAMERA_TO_PROCESS
+fi
+
+
 # Wait for the OpenPose container to start, otherwise we might get connection errors
 sleep 30
 
@@ -39,6 +46,8 @@ apptainer run \
       --ext .png \
       --shutdown_openpose \
       --openpose_port $OPENPOSE_PORT \
-      --folder_to_process $CAMERA_TO_PROCESS &
+      --folder_to_process $CAMERA_TO_PROCESS \
+      --process_mode $PROCESS_MODE \
+      &
 
 wait

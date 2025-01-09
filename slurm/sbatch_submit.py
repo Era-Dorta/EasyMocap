@@ -30,8 +30,10 @@ def submit_processing_jobs(recording_number: str,
                            verbose: bool = False,
                            dep_job_ids: None |  list[int] = None,
                            cameras_to_process: list[int] = None,
+                           process_mode: str = "images",
 ) -> list[int]:
     new_env = get_job_environ(recording_number)
+    new_env["PROCESS_MODE"] = process_mode
 
     if cameras_to_process is None:
         _cameras_to_process = ["all"]
@@ -148,6 +150,7 @@ if __name__ == "__main__":
                             If not provided, all folders will be processed in a single job.
                             """
                         )
+    parser.add_argument('--process-mode', default='images', choices=['images', 'videos'], help='Process mode.')
     args = parser.parse_args()
 
     os.chdir(Path(__file__).parent)

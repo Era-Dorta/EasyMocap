@@ -39,5 +39,6 @@ if __name__ == "__main__":
         subprocess.run(cmd)
 
         input_video_mp4.rename(processed_mp4_folder / input_video_mp4.name)
+        (data_path.parent / "images" / input_video_mp4.stem).mkdir(exist_ok=True, parents=True)
 
     print("Done")

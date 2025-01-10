@@ -150,7 +150,7 @@ if __name__ == "__main__":
                             If not provided, all folders will be processed in a single job.
                             """
                         )
-    parser.add_argument('--process-mode', default='images', choices=['images', 'videos'], help='Process mode.')
+    parser.add_argument('--process_mode', default='images', choices=['images', 'videos'], help='Process mode.')    
     args = parser.parse_args()
 
     os.chdir(Path(__file__).parent)
@@ -163,7 +163,8 @@ if __name__ == "__main__":
         partition=args.partition,
         verbose=args.verbose,
         dep_job_ids=args.dep_job_ids,
-        cameras_to_process=args.cameras_to_process
+        cameras_to_process=args.cameras_to_process,
+        process_mode=args.process_mode,
     ))
 
     if add_clean_up_job:

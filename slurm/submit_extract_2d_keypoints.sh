@@ -23,7 +23,7 @@ apptainer run \
 
 data=/home/user/easymocap/EasyMocap/data/examples/_data
 
-if [ "$PROCESS_MODE" == "videos" ]
+if [ "$PROCESS_MODE" = "videos" ]
 then
     # Create the image directory to avoid the automatic image extraction from video from EasyMocap
     mkdir -p "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_processed/images/$CAMERA_TO_PROCESS

@@ -11,6 +11,13 @@
 
 # 3D keypoint extraction and visualisation using OpenPose and EasyMocap
 
+echo "RECORDING_NUMBER "$RECORDING_NUMBER
+echo "DATA_DIRECTORY "$DATA_DIRECTORY
+echo "PROCESS_MODE "$PROCESS_MODE
+echo "CAMERA_TO_PROCESS "$CAMERA_TO_PROCESS
+echo "OPENPOSE_IMAGE "$OPENPOSE_IMAGE
+echo "EASYMOCAP_IMAGE "$EASYMOCAP_IMAGE
+
 # Get a free port to run the OpenPose container with
 OPENPOSE_PORT=$(python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
 
@@ -25,6 +32,7 @@ data=/home/user/easymocap/EasyMocap/data/examples/_data
 
 if [ "$PROCESS_MODE" = "videos" ]
 then
+    echo "Creating empty image folder" "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_processed/images/$CAMERA_TO_PROCESS
     # Create the image directory to avoid the automatic image extraction from video from EasyMocap
     mkdir -p "${DATA_DIRECTORY}"/Rec${RECORDING_NUMBER}_processed/images/$CAMERA_TO_PROCESS
 fi

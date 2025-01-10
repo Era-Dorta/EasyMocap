@@ -8,6 +8,10 @@
 # 3D keypoint extraction and visualisation using EasyMocap
 data=/home/user/easymocap/EasyMocap/data/examples/_data
 
+echo "RECORDING_NUMBER "$RECORDING_NUMBER
+echo "DATA_DIRECTORY "$DATA_DIRECTORY
+echo "EASYMOCAP_IMAGE "$EASYMOCAP_IMAGE
+
 # Run the containers with the following flags
 # --nv to get access to the nvidia GPUs in the host system
 # --containall to not mount any directory from the host system by default

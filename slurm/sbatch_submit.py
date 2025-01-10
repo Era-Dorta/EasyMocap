@@ -31,6 +31,7 @@ def submit_processing_jobs(recording_number: str,
                            dep_job_ids: None |  list[int] = None,
                            cameras_to_process: list[int] = None,
                            process_mode: str = "images",
+                           use_sbatch: bool = True,
 ) -> list[int]:
     new_env = get_job_environ(recording_number)
     new_env["PROCESS_MODE"] = process_mode
@@ -50,61 +51,72 @@ def submit_processing_jobs(recording_number: str,
         else:
             new_env["CAMERA_TO_PROCESS"] = camera_name
 
+        if use_sbatch:
+            # fmt: off
+            cmd = [
+                "sbatch",
+                "--job-name", f"get-2d-keypoints-{name_identifier}",
+                "--account", account,
+                "--partition", partition,
+            ]
+            # fmt: on
+
+            if dep_job_ids is not None:
+                job_deps_str = ":".join(map(str, dep_job_ids))
+                cmd += ["--dependency", f"afterok:{job_deps_str}"]
+
+            cmd += ["submit_extract_2d_keypoints.sh"]
+
+            if verbose:
+                print(" ".join(cmd))
+
+            ret = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=new_env)
+        
+            time.sleep(0.1)  # Wait a bit to ensure slurm doesn't crash from submitting jobs too fast
+
+            if ret.returncode != 0:
+                raise RuntimeError(ret.stdout + ret.stderr)
+
+            stdout = ret.stdout.decode("utf-8")
+            if not stdout.startswith("Submitted batch job"):
+                raise RuntimeError(ret.stdout + ret.stderr)
+
+            keypoint_job_ids.append(int(stdout.replace("Submitted batch job ", "")))
+
+            print(stdout.strip() + "\n")
+        else:
+            subprocess.call("./submit_extract_2d_keypoints.sh", env=new_env)
+            print("\n\n\n")
+
+    if use_sbatch:
+        keypoint_job_ids_str = ":".join(map(str, keypoint_job_ids))
+
         # fmt: off
         cmd = [
             "sbatch",
-            "--job-name", f"get-2d-keypoints-{name_identifier}",
+            "--job-name", f"2d-keypoints-to-3d-{recording_number}",
             "--account", account,
             "--partition", partition,
+            "--dependency", f"afterok:{keypoint_job_ids_str}",
+            "submit_lift_2d_keypoints_to_3d.sh",
         ]
         # fmt: on
-
-        if dep_job_ids is not None:
-            job_deps_str = ":".join(map(str, dep_job_ids))
-            cmd += ["--dependency", f"afterok:{job_deps_str}"]
-
-        cmd += ["submit_extract_2d_keypoints.sh"]
 
         if verbose:
             print(" ".join(cmd))
 
-        ret = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=new_env)
+        ret = subprocess.run(cmd, env=new_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        time.sleep(0.1)  # Wait a bit to ensure slurm doesn't crash from submitting jobs too fast
+        time.sleep(0.1)
 
-        if ret.returncode != 0:
-            raise RuntimeError(ret.stdout + ret.stderr)
-
+        print("Lift 2D keypoints to 3D")
         stdout = ret.stdout.decode("utf-8")
-        if not stdout.startswith("Submitted batch job"):
-            raise RuntimeError(ret.stdout + ret.stderr)
-
         print(stdout.strip() + "\n")
-        keypoint_job_ids.append(int(stdout.replace("Submitted batch job ", "")))
-
-    keypoint_job_ids_str = ":".join(map(str, keypoint_job_ids))
-
-    # fmt: off
-    cmd = [
-        "sbatch",
-        "--job-name", f"2d-keypoints-to-3d-{recording_number}",
-        "--account", account,
-        "--partition", partition,
-        "--dependency", f"afterok:{keypoint_job_ids_str}",
-        "submit_lift_2d_keypoints_to_3d.sh",
-    ]
-    # fmt: on
-
-    if verbose:
-        print(" ".join(cmd))
-
-    ret = subprocess.run(cmd, env=new_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    time.sleep(0.1)
-
-    print("Lift 2D keypoints to 3D")
-    stdout = ret.stdout.decode("utf-8")
-    print(stdout.strip() + "\n")
-    return keypoint_job_ids + [int(stdout.replace("Submitted batch job ", ""))]
+        return keypoint_job_ids + [int(stdout.replace("Submitted batch job ", ""))]
+    else:
+        subprocess.call("./submit_lift_2d_keypoints_to_3d.sh", env=new_env)
+        print("\n\n\n")
+        return []
 
 
 def submit_clean_up_job(recording_number: str, account: str, partition: str, job_dependencies: list[int], verbose: bool = False):
@@ -151,6 +163,7 @@ if __name__ == "__main__":
                             """
                         )
     parser.add_argument('--process_mode', default='images', choices=['images', 'videos'], help='Process mode.')    
+    parser.add_argument('--no-sbatch', action='store_true')
     args = parser.parse_args()
 
     os.chdir(Path(__file__).parent)
@@ -165,6 +178,7 @@ if __name__ == "__main__":
         dep_job_ids=args.dep_job_ids,
         cameras_to_process=args.cameras_to_process,
         process_mode=args.process_mode,
+        use_sbatch = not args.no_sbatch,
     ))
 
     if add_clean_up_job:
@@ -176,7 +190,8 @@ if __name__ == "__main__":
             verbose=args.verbose,
          ))
 
-    print(f"\nIf you made a mistake, you can cancel the jobs with\nscancel {' '.join(map(str, job_ids))}")
+    if not args.no_sbatch:
+        print(f"\nIf you made a mistake, you can cancel the jobs with\nscancel {' '.join(map(str, job_ids))}")
 
 
 # ./sbatch_submit.py --recording_number 189_dev_test_3_cams --cameras_to_process LC_1 RC_1

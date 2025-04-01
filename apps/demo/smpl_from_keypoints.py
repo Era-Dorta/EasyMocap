@@ -16,6 +16,7 @@ from easymocap.pipeline import smpl_from_keypoints3d
 import os
 from os.path import join
 from tqdm import tqdm
+import numpy as np
 
 def smpl_from_skel(path, sub, out, skel3d, args):
     config = CONFIG[args.body]
@@ -25,7 +26,7 @@ def smpl_from_skel(path, sub, out, skel3d, args):
     weight_pose = load_weight_pose(args.model, args.opts)
     with Timer('Loading {}, {}'.format(args.model, args.gender)):
         body_model = load_model(args.gender, model_type=args.model)
-    for pid, result in results3d.items():
+    for pid, result in tqdm(results3d.items(), desc='fitting'):
         body_params = smpl_from_keypoints3d(body_model, result['keypoints3d'], config, args,
             weight_shape=weight_shape, weight_pose=weight_pose)
         result['body_params'] = body_params
@@ -44,6 +45,18 @@ def smpl_from_skel(path, sub, out, skel3d, args):
                 val.update(params)
                 res.append(val)
         write_smpl(outname, res)
+           
+    # Save in a format that is good for AITViewer, this assumes that there is a single person
+    np.savez(
+        outname,
+        trans=results3d[0]['body_params']['Th'],
+        poses_root=results3d[0]['body_params']['Rh'],
+        poses=results3d[0]['body_params']['poses'],
+        gender="female",
+        surface_model_type="smplx",
+        mocap_frame_rate=60,
+        betas=results3d[0]['body_params']['shapes'],
+    )
 
 if __name__ == "__main__":
     from easymocap.mytools import load_parser, parse_parser

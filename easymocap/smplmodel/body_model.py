@@ -53,6 +53,11 @@ def load_bodydata(model_type, model_path, gender):
         data = pickle.load(smpl_file, encoding='latin1')
     return data
 
+# SPMLX 
+# 66 / 3 = rotations for body, 22 joints
+# 12 / 2 = 6 pca components for each hand
+# 9 (???)
+
 NUM_POSES = {'smpl': 72, 'smplh': 78, 'smplx': 66 + 12 + 9, 'mano': 9}
 NUM_SHAPES = 10
 NUM_EXPR = 10

@@ -17,6 +17,7 @@ import os
 from os.path import join
 from tqdm import tqdm
 import numpy as np
+import torch
 
 def smpl_from_skel(path, sub, out, skel3d, args):
     config = CONFIG[args.body]
@@ -45,13 +46,19 @@ def smpl_from_skel(path, sub, out, skel3d, args):
                 val.update(params)
                 res.append(val)
         write_smpl(outname, res)
-           
+    
+    # The original poses have the hands in PCA space, we need to convert them to the original space
+    # This goes from [f, 87], to [f, 165]
+    poses_gpu = torch.tensor(results3d[0]['body_params']['poses']).to("cuda")
+    full_poses = body_model.extend_pose(poses_gpu)
+    full_poses = full_poses.cpu().numpy()
+
     # Save in a format that is good for AITViewer, this assumes that there is a single person
     np.savez(
         outname,
         trans=results3d[0]['body_params']['Th'],
         poses_root=results3d[0]['body_params']['Rh'],
-        poses=results3d[0]['body_params']['poses'],
+        poses=full_poses,
         gender="female",
         surface_model_type="smplx",
         mocap_frame_rate=60,
